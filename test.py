@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import numpy as np
-import cPickle
+import _pickle as cPickle
 import sqlite3
 import sys
 from geopy.distance import great_circle
@@ -19,7 +19,7 @@ else:
 
 saved_model_file = u"../data/weights"
 print(u"Testing:", test_data, u"with weights:", saved_model_file)
-word_to_index = cPickle.load(open(u"data/words2index.pkl"))  # This is the vocabulary file
+word_to_index = cPickle.load(open(u"data/words2index.pkl", "rb"))  # This is the vocabulary file
 #  --------------------------------------------------------------------------------------------------------------------
 print(u'Loading model...')
 model = load_model(saved_model_file)
@@ -49,8 +49,9 @@ for prediction, (y, name, context) in zip(model.predict_generator(generate_array
     for candidate in candidates:
         err = great_circle(prediction, (float(candidate[0]), float(candidate[1]))).km
         best_candidate.append((err - (err * max(1, candidate[2]) / max(1, max_pop)) * bias, (float(candidate[0]), float(candidate[1]))))
-    best_candidate = sorted(best_candidate, key=lambda (a, b): a)[0]
-    final_errors.append(great_circle(best_candidate[1], y).km)
+    best_candidate = sorted(best_candidate, key=lambda 	ab: (ab[0]))
+    print(best_candidate)
+    final_errors.append(great_circle(best_candidate[0][1], y).km)
 
     # ---------------- ERROR DIAGNOSTICS --------------------
     # dist_p, dist_y, index_p, index_y = 100000, 100000, 0, 0

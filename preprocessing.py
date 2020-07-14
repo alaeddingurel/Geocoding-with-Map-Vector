@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import codecs
-import cPickle
+import _pickle as cPickle
 from collections import Counter
 import matplotlib.pyplot as plt
 import spacy
@@ -16,12 +16,12 @@ CONTEXT_LENGTH = 200  # each side of target entity
 UNKNOWN = u"<unknown>"
 EMBEDDING_DIMENSION = 50
 TARGET_LENGTH = 15
-ENCODING_MAP_1x1 = cPickle.load(open(u"data/1x1_encode_map.pkl"))      # We need these maps
-ENCODING_MAP_2x2 = cPickle.load(open(u"data/2x2_encode_map.pkl"))      # and the reverse ones
-REVERSE_MAP_1x1 = cPickle.load(open(u"data/1x1_reverse_map.pkl"))      # to handle the used and
-REVERSE_MAP_2x2 = cPickle.load(open(u"data/2x2_reverse_map.pkl"))      # unused map_vector polygons.
-OUTLIERS_MAP_1x1 = cPickle.load(open(u"data/1x1_outliers_map.pkl"))    # Outliers are redundant polygons that
-OUTLIERS_MAP_2x2 = cPickle.load(open(u"data/2x2_outliers_map.pkl"))    # have been removed but must also be handled.
+ENCODING_MAP_1x1 = cPickle.load(open(u"data/1x1_encode_map.pkl", "rb"))      # We need these maps
+ENCODING_MAP_2x2 = cPickle.load(open(u"data/2x2_encode_map.pkl", "rb"))      # and the reverse ones
+REVERSE_MAP_1x1 = cPickle.load(open(u"data/1x1_reverse_map.pkl", "rb"))      # to handle the used and
+REVERSE_MAP_2x2 = cPickle.load(open(u"data/2x2_reverse_map.pkl", "rb"))      # unused map_vector polygons.
+OUTLIERS_MAP_1x1 = cPickle.load(open(u"data/1x1_outliers_map.pkl", "rb"))    # Outliers are redundant polygons that
+OUTLIERS_MAP_2x2 = cPickle.load(open(u"data/2x2_outliers_map.pkl", "rb"))    # have been removed but must also be handled.
 # -------- GLOBAL CONSTANTS AND VARIABLES -------- #
 
 
@@ -35,8 +35,8 @@ def print_stats(accuracy):
     print(u"Mean error:", np.mean(accuracy))
     accuracy = np.log(np.array(accuracy) + 1)
     k = np.log(161)
-    print u"Accuracy to 161 km: ", sum([1.0 for dist in accuracy if dist < k]) / len(accuracy)
-    print u"AUC = ", np.trapz(accuracy) / (np.log(20039) * (len(accuracy) - 1))  # Trapezoidal rule.
+    print("Accuracy to 161 km: ", sum([1.0 for dist in accuracy if dist < k]) / len(accuracy))
+    print("AUC = ", np.trapz(accuracy) / (np.log(20039) * (len(accuracy) - 1)))  # Trapezoidal rule.
     print("==============================================================================================")
 
 
@@ -105,7 +105,7 @@ def get_coordinates(con, loc_name):
     result = con.execute(u"SELECT METADATA FROM GEO WHERE NAME = ?", (loc_name.lower(),)).fetchone()
     if result:
         result = eval(result[0])  # Do not remove the sorting, the function below assumes sorted results!
-        return sorted(result, key=lambda (a, b, c, d): c, reverse=True)
+        return sorted(result, key=lambda abcd: abcd[2], reverse=True)
     else:
         return []
 
@@ -407,7 +407,7 @@ def generate_evaluation_data(corpus, file_name):
                         o.write(str(target_grid) + u"\t" + str([t.lower() for t in lookup.split()][:TARGET_LENGTH]))
                         o.write(u"\t" + str(entities_near) + u"\t" + str(entities_far) + u"\n")
             if not captured:
-                print line_no, line, target, start, end
+                print(line_no, line, target, start, end)
     o.close()
 
 
@@ -483,11 +483,11 @@ def generate_arrays_from_file(path, words_to_index, train=True):
 
             near = [w if u"**LOC**" not in w else u'0' for w in eval(line[2])]
             far = [w if u"**LOC**" not in w else u'0' for w in eval(line[3])]
-            context_words.append(far[:CONTEXT_LENGTH / 2] + near + far[CONTEXT_LENGTH / 2:])
+            context_words.append(far[:int(CONTEXT_LENGTH / 2)] + near + far[int(CONTEXT_LENGTH / 2):])
 
             near = [w.replace(u"**LOC**", u"") if u"**LOC**" in w else u'0' for w in eval(line[2])]
             far = [w.replace(u"**LOC**", u"") if u"**LOC**" in w else u'0' for w in eval(line[3])]
-            entities_strings.append(far[:CONTEXT_LENGTH / 2] + near + far[CONTEXT_LENGTH / 2:])
+            entities_strings.append(far[:int(CONTEXT_LENGTH / 2)] + near + far[int(CONTEXT_LENGTH / 2):])
 
             # map_vector.append(construct_map_vector(sorted(eval(line[4]) + eval(line[6]) + eval(line[7]),
             #                key=lambda (a, b, c, d): c, reverse=True), 1, ENCODING_MAP_1x1, OUTLIERS_MAP_1x1))
