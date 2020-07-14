@@ -50,7 +50,7 @@ for prediction, (y, name, context) in zip(model.predict_generator(generate_array
         err = great_circle(prediction, (float(candidate[0]), float(candidate[1]))).km
         best_candidate.append((err - (err * max(1, candidate[2]) / max(1, max_pop)) * bias, (float(candidate[0]), float(candidate[1]))))
     best_candidate = sorted(best_candidate, key=lambda 	ab: (ab[0]))
-    print(best_candidate)
+    #print(best_candidate)
     final_errors.append(great_circle(best_candidate[0][1], y).km)
 
     # ---------------- ERROR DIAGNOSTICS --------------------
